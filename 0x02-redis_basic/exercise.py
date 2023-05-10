@@ -10,6 +10,22 @@ from uuid import uuid4
 from functools import wraps
 
 
+def call_history(method: Callable) -> Callable:
+    """ Call history. """
+
+    key = method.__qualname__
+    i = "".join([key, ":inputs"])
+    o = "".join([key, ":outputs"])
+    @wraps(method)
+    def wrapper(self, *args, **kwargs):
+        """ Wrapper """
+
+        self._redis.rpush(i, str(args))
+        result = method(self, *args, **kwargs)
+        self._redis.rpush(o, str(result))
+        return result
+    return wrapper
+
 def count_calls(method: Callable) -> Callable:
     """ Count calls """
 
@@ -32,6 +48,7 @@ class Cache:
         self._redis.flushdb()
 
     @count_calls
+    @call_history
     def store(self, data: Union[str, bytes, int, float]) -> str:
         """
         Generates a random key using uuid, store the input data and return the key.
