@@ -10,6 +10,11 @@ from uuid import uuid4
 from functools import wraps
 
 
+def decode_utf8(b: bytes) -> str:
+    """ Decodes bytes to string """
+
+    return b.decode('utf-8') if type(b) == bytes else b
+
 def replay(method: Callable):
     """ Replay """
 
